@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBRIN AI VISION - Advanced Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cyber-blue: #00f3ff;
+            --cyber-purple: #b400ff;
+            --cyber-pink: #ff00ff;
+            --cyber-green: #00ff88;
+            --cyber-orange: #ff6600;
+            --bg-dark: #0a0a0f;
+            --bg-card: #15151f;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-dark);
+            color: var(--cyber-blue);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated Background */
+        .cyber-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+            background: 
+                linear-gradient(45deg, transparent 30%, var(--cyber-blue) 30%, var(--cyber-blue) 70%, transparent 70%),
+                linear-gradient(-45deg, transparent 30%, var(--cyber-purple) 30%, var(--cyber-purple) 70%, transparent 70%);
+            background-size: 100px 100px;
+            animation: bgMove 20s linear infinite;
+        }
+
+        @keyframes bgMove {
+            0% { background-position: 0 0, 50px 50px; }
+            100% { background-position: 100px 100px, 150px 150px; }
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px solid var(--cyber-blue);
+            border-radius: 10px;
+            background: rgba(0, 243, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(0, 243, 255, 0.6); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, var(--cyber-blue), var(--cyber-purple), var(--cyber-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease infinite;
+            background-size: 200% 100%;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Camera Section */
+        .camera-section {
+            position: relative;
+            background: var(--bg-card);
+            border: 2px solid var(--cyber-purple);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(180, 0, 255, 0.3);
+        }
+
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--cyber-blue);
+        }
+
+        #videoElement {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #canvasElement {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .detection-box {
+            position: absolute;
+            border: 3px solid var(--cyber-green);
+            border-radius: 5px;
+            background: rgba(0, 255, 136, 0.1);
+            animation: detectPulse 1s ease-in-out infinite;
+        }
+
+        .detection-label {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            background: var(--cyber-green);
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        @keyframes detectPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Record Button */
+        .record-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-purple));
+            color: white;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .record-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .record-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .record-btn:hover {
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .record-btn.recording {
+            background: linear-gradient(135deg, #ff0000, #ff6600);
+            animation: recordBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes recordBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--cyber-blue);
+            border-radius: 15px;
+            padding: 15px;
+            max-height: 800px;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        .settings-panel h3 {
+            color: var(--cyber-blue);
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 243, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--cyber-green);
+            font-size: 0.9em;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(90deg, var(--cyber-blue), var(--cyber-purple));
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .slider-input {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        select, input[type="range"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a2e;
+            border: 1px solid var(--cyber-blue);
+            border-radius: 5px;
+            color: var(--cyber-blue);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Detection Results */
+        .detection-results {
+            background: var(--bg-card);
+            border: 2px solid var(--cyber-green);
+            border-radius: 15px;
+            padding: 15px;
+            max-height: 800px;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .detection-results h3 {
+            color: var(--cyber-green);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .detection-item {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid var(--cyber-green);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .detection-item .label {
+            font-weight: bold;
+            color: var(--cyber-green);
+            font-size: 1.1em;
+        }
+
+        .detection-item .confidence {
+            color: var(--cyber-blue);
+            font-size: 0.9em;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            background: var(--bg-card);
+            border: 2px solid var(--cyber-pink);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.2);
+        }
+
+        .chat-section h3 {
+            color: var(--cyber-pink);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 0, 255, 0.3);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .message.user {
+            background: rgba(0, 243, 255, 0.2);
+            border-left: 3px solid var(--cyber-blue);
+            margin-left: 20px;
+        }
+
+        .message.ai {
+            background: rgba(255, 0, 255, 0.2);
+            border-left: 3px solid var(--cyber-pink);
+            margin-right: 20px;
+        }
+
+        .message .sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .message.user .sender {
+            color: var(--cyber-blue);
+        }
+
+        .message.ai .sender {
+            color: var(--cyber-pink);
+        }
+
+        .message .sources {
+            margin-top: 8px;
+            font-size: 0.8em;
+            color: var(--cyber-green);
+            font-style: italic;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots span {
+            animation: blink 1.4s infinite both;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0; }
+            40% { opacity: 1; }
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            background: #1a1a2e;
+            border: 2px solid var(--cyber-pink);
+            border-radius: 8px;
+            color: var(--cyber-pink);
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        .send-btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, var(--cyber-pink), var(--cyber-purple));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover {
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            background: var(--bg-card);
+            border: 2px solid var(--cyber-green);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+
+        .status-item .label {
+            font-size: 0.8em;
+            color: var(--cyber-green);
+            margin-bottom: 5px;
+        }
+
+        .status-item .value {
+            font-size: 1.3em;
+            color: var(--cyber-blue);
+            font-weight: bold;
+        }
+
+        /* Scrollbar Custom */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--cyber-blue), var(--cyber-purple));
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--cyber-purple), var(--cyber-pink));
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .settings-panel, .detection-results {
+                max-height: 400px;
+            }
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px;
+            background: rgba(0, 243, 255, 0.2);
+            border: 1px solid var(--cyber-blue);
+            border-radius: 8px;
+            color: var(--cyber-blue);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 243, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+        }
+
+        .control-btn.active {
+            background: var(--cyber-blue);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="cyber-bg"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⚡ CYBRIN AI VISION ⚡</h1>
+            <p>Advanced Object Detection & AI Assistant System v3.0</p>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="label">CAMERA STATUS</div>
+                <div class="value" id="cameraStatus">OFFLINE</div>
+            </div>
+            <div class="status-item">
+                <div class="label">DETECTION MODE</div>
+                <div class="value" id="detectionMode">STANDBY</div>
+            </div>
+            <div class="status-item">
+                <div class="label">OBJECTS DETECTED</div>
+                <div class="value" id="objectCount">0</div>
+            </div>
+            <div class="status-item">
+                <div class="label">AI STATUS</div>
+                <div class="value" id="aiStatus">READY</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Settings Panel -->
+            <div class="settings-panel">
+                <h3>⚙️ SETTINGS</h3>
+                
+                <div class="setting-item">
+                    <label>📹 Camera Source</label>
+                    <select id="cameraSelect">
+                        <option value="user">Front Camera</option>
+                        <option value="environment">Back Camera</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>💡 Flash/Torch</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="flashToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎯 Auto Detection</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoDetect" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>⚡ Detection Speed: <span id="speedValue">50</span>ms</label>
+                    <input type="range" id="detectionSpeed" min="10" max="500" value="50">
+                </div>
+
+                <div class="setting-item">
+                    <label>🎚️ Confidence Threshold: <span id="confidenceValue">70</span>%</label>
+                    <input type="range" id="confidenceThreshold" min="0" max="100" value="70">
+                </div>
+
+                <div class="setting-item">
+                    <label>🔍 Detection Sensitivity</label>
+                    <select id="sensitivity">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="ultra">Ultra</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>📊 Max Objects: <span id="maxObjValue">5</span></label>
+                    <input type="range" id="maxObjects" min="1" max="20" value="5">
+                </div>
+
+                <div class="setting-item">
+                    <label>🎨 Detection Box Color</label>
+                    <select id="boxColor">
+                        <option value="#00ff88">Green</option>
+                        <option value="#00f3ff">Blue</option>
+                        <option value="#ff00ff">Pink</option>
+                        <option value="#ffff00">Yellow</option>
+                        <option value="#ff0000">Red</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>📏 Box Thickness: <span id="thicknessValue">3</span>px</label>
+                    <input type="range" id="boxThickness" min="1" max="10" value="3">
+                </div>
+
+                <div class="setting-item">
+                    <label>🌈 RGB Animation Speed</label>
+                    <select id="rgbSpeed">
+                        <option value="slow">Slow</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="fast">Fast</option>
+                        <option value="off">Off</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔊 Sound Effects</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="soundEffects">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎥 Video Resolution</label>
+                    <select id="videoResolution">
+                        <option value="640x480">640x480</option>
+                        <option value="1280x720" selected>1280x720 (HD)</option>
+                        <option value="1920x1080">1920x1080 (Full HD)</option>
+                        <option value="3840x2160">3840x2160 (4K)</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>📸 Snapshot on Detect</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoSnapshot">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>💾 Save Detections</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="saveDetections" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🌐 Language Detection</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="langDetect" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔄 Continuous Scan</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="continuousScan" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎯 Focus Mode</label>
+                    <select id="focusMode">
+                        <option value="auto" selected>Auto</option>
+                        <option value="manual">Manual</option>
+                        <option value="macro">Macro</option>
+                        <option value="infinity">Infinity</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>⚡ Processing Power</label>
+                    <select id="processingPower">
+                        <option value="low">Low (Battery Saver)</option>
+                        <option value="balanced" selected>Balanced</option>
+                        <option value="high">High Performance</option>
+                        <option value="maximum">Maximum</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔍 Zoom Level: <span id="zoomValue">1.0</span>x</label>
+                    <input type="range" id="zoomLevel" min="1" max="5" step="0.1" value="1">
+                </div>
+
+                <div class="setting-item">
+                    <label>🌅 Brightness: <span id="brightnessValue">100</span>%</label>
+                    <input type="range" id="brightness" min="0" max="200" value="100">
+                </div>
+
+                <div class="setting-item">
+                    <label>🎨 Contrast: <span id="contrastValue">100</span>%</label>
+                    <input type="range" id="contrast" min="0" max="200" value="100">
+                </div>
+
+                <div class="setting-item">
+                    <label>🌈 Saturation: <span id="saturationValue">100</span>%</label>
+                    <input type="range" id="saturation" min="0" max="200" value="100">
+                </div>
+
+                <div class="setting-item">
+                    <label>🔆 Exposure: <span id="exposureValue">0</span></label>
+                    <input type="range" id="exposure" min="-100" max="100" value="0">
+                </div>
+
+                <div class="setting-item">
+                    <label>❄️ White Balance</label>
+                    <select id="whiteBalance">
+                        <option value="auto" selected>Auto</option>
+                        <option value="daylight">Daylight</option>
+                        <option value="cloudy">Cloudy</option>
+                        <option value="fluorescent">Fluorescent</option>
+                        <option value="incandescent">Incandescent</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>📊 Show Statistics</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="showStats" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎯 Target Tracking</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="targetTracking">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔄 Frame Rate: <span id="fpsValue">30</span> FPS</label>
+                    <input type="range" id="frameRate" min="15" max="60" value="30">
+                </div>
+
+                <div class="setting-item">
+                    <label>🎭 Filter Mode</label>
+                    <select id="filterMode">
+                        <option value="none" selected>None</option>
+                        <option value="grayscale">Grayscale</option>
+                        <option value="sepia">Sepia</option>
+                        <option value="blur">Blur</option>
+                        <option value="edge">Edge Detection</option>
+                        <option value="thermal">Thermal Vision</option>
+                        <option value="nightvision">Night Vision</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎬 Stabilization</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="stabilization" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔊 Voice Feedback</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="voiceFeedback">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>📱 Vibration Alert</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="vibrationAlert">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎯 Detection Categories</label>
+                    <select id="detectionCategory">
+                        <option value="all" selected>All Objects</option>
+                        <option value="logos">Logos Only</option>
+                        <option value="food">Food Only</option>
+                        <option value="text">Text/OCR</option>
+                        <option value="faces">Faces</option>
+                        <option value="products">Products</option>
+                        <option value="landmarks">Landmarks</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>🌍 Location Tagging</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="locationTag">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>⏰ Timestamp Overlay</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="timestampOverlay">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔐 Privacy Mode</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="privacyMode">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>📊 Performance Monitor</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="perfMonitor">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎨 UI Theme</label>
+                    <select id="uiTheme">
+                        <option value="cyber" selected>Cyberpunk</option>
+                        <option value="matrix">Matrix</option>
+                        <option value="neon">Neon</option>
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔋 Battery Optimization</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="batteryOpt">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>📡 Cloud Sync</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="cloudSync">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔄 Auto Update</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoUpdate" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎯 Smart Crop</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="smartCrop">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🌐 Multi-Language AI</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="multiLangAI" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎭 AR Overlay</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="arOverlay">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>📈 Analytics</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="analytics">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔍 Deep Learning Mode</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="deepLearning" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎬 Video Recording Quality</label>
+                    <select id="videoQuality">
+                        <option value="low">Low (480p)</option>
+                        <option value="medium">Medium (720p)</option>
+                        <option value="high" selected>High (1080p)</option>
+                        <option value="ultra">Ultra (4K)</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎵 Audio Recording</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="audioRecording">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔊 Noise Reduction</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="noiseReduction">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>📸 Burst Mode</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="burstMode">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>⏱️ Time Lapse</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="timeLapse">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎯 Grid Lines</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="gridLines">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔄 Mirror Mode</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="mirrorMode">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🌙 Night Mode</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="nightMode">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>⚡ HDR Mode</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="hdrMode">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🎨 Color Enhancement</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="colorEnhancement">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label>🔍 Digital Zoom Quality</label>
+                    <select id="zoomQuality">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Camera Section -->
+            <div class="camera-section">
+                <div class="camera-container">
+                    <video id="videoElement" autoplay playsinline></video>
+                    <canvas id="canvasElement"></canvas>
+                </div>
+                
+                <div class="camera-controls">
+                    <button class="control-btn" id="switchCamera">🔄 Switch</button>
+                    <button class="control-btn" id="flashBtn">💡 Flash</button>
+                    <button class="control-btn" id="snapshotBtn">📸 Snap</button>
+                    <button class="control-btn" id="fullscreenBtn">⛶ Full</button>
+                </div>
+
+                <button class="record-btn" id="recordBtn">
+                    <span>▶ START DETECTION</span>
+                </button>
+            </div>
+
+            <!-- Detection Results -->
+            <div class="detection-results">
+                <h3>🎯 DETECTION RESULTS</h3>
+                <div id="detectionList"></div>
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section">
+            <h3>🤖 AI ASSISTANT CHAT</h3>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai">
+                    <div class="sender">CYBRIN AI</div>
+                    <div class="content">Hello! I'm CYBRIN AI. I can help you identify objects, answer questions, solve math problems, and provide information about anything you see or ask. How can I assist you today?</div>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything...">
+                <button class="send-btn" id="sendBtn">SEND</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let stream = null;
+        let isRecording = false;
+        let detectionInterval = null;
+        let detectionObjects = [];
+        let currentCamera = 'user';
+        let canvas, ctx, video;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            canvas = document.getElementById('canvasElement');
+            ctx = canvas.getContext('2d');
+            video = document.getElementById('videoElement');
+            
+            setupEventListeners();
+            initializeSettings();
+        });
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Record Button
+            document.getElementById('recordBtn').addEventListener('click', toggleRecording);
+            
+            // Camera Controls
+            document.getElementById('switchCamera').addEventListener('click', switchCamera);
+            document.getElementById('flashBtn').addEventListener('click', toggleFlash);
+            document.getElementById('snapshotBtn').addEventListener('click', takeSnapshot);
+            document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+            
+            // Chat
+            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            // Settings
+            document.getElementById('cameraSelect').addEventListener('change', (e) => {
+                currentCamera = e.target.value;
+                if (isRecording) restartCamera();
+            });
+            
+            document.getElementById('detectionSpeed').addEventListener('input', (e) => {
+                document.getElementById('speedValue').textContent = e.target.value;
+                if (isRecording) {
+                    clearInterval(detectionInterval);
+                    startDetection();
+                }
+            });
+            
+            document.getElementById('confidenceThreshold').addEventListener('input', (e) => {
+                document.getElementById('confidenceValue').textContent = e.target.value;
+            });
+            
+            document.getElementById('maxObjects').addEventListener('input', (e) => {
+                document.getElementById('maxObjValue').textContent = e.target.value;
+            });
+            
+            document.getElementById('boxThickness').addEventListener('input', (e) => {
+                document.getElementById('thicknessValue').textContent = e.target.value;
+            });
+            
+            document.getElementById('zoomLevel').addEventListener('input', (e) => {
+                document.getElementById('zoomValue').textContent = e.target.value;
+                applyZoom(e.target.value);
+            });
+            
+            document.getElementById('brightness').addEventListener('input', (e) => {
+                document.getElementById('brightnessValue').textContent = e.target.value;
+                applyFilters();
+            });
+            
+            document.getElementById('contrast').addEventListener('input', (e) => {
+                document.getElementById('contrastValue').textContent = e.target.value;
+                applyFilters();
+            });
+            
+            document.getElementById('saturation').addEventListener('input', (e) => {
+                document.getElementById('saturationValue').textContent = e.target.value;
+                applyFilters();
+            });
+            
+            document.getElementById('exposure').addEventListener('input', (e) => {
+                document.getElementById('exposureValue').textContent = e.target.value;
+                applyFilters();
+            });
+            
+            document.getElementById('frameRate').addEventListener('input', (e) => {
+                document.getElementById('fpsValue').textContent = e.target.value;
+            });
+        }
+
+        // Initialize Settings
+        function initializeSettings() {
+            // Set initial values
+            document.getElementById('speedValue').textContent = '50';
+            document.getElementById('confidenceValue').textContent = '70';
+            document.getElementById('maxObjValue').textContent = '5';
+            document.getElementById('thicknessValue').textContent = '3';
+            document.getElementById('zoomValue').textContent = '1.0';
+            document.getElementById('brightnessValue').textContent = '100';
+            document.getElementById('contrastValue').textContent = '100';
+            document.getElementById('saturationValue').textContent = '100';
+            document.getElementById('exposureValue').textContent = '0';
+            document.getElementById('fpsValue').textContent = '30';
+        }
+
+        // Toggle Recording
+        async function toggleRecording() {
+            const btn = document.getElementById('recordBtn');
+            
+            if (!isRecording) {
+                try {
+                    await startCamera();
+                    startDetection();
+                    btn.innerHTML = '<span>⏹ STOP DETECTION</span>';
+                    btn.classList.add('recording');
+                    isRecording = true;
+                    updateStatus('cameraStatus', 'ONLINE');
+                    updateStatus('detectionMode', 'ACTIVE');
+                } catch (error) {
+                    console.error('Error starting camera:', error);
+                    addChatMessage('ai', 'Error: Could not access camera. Please grant camera permissions.');
+                }
+            } else {
+                stopCamera();
+                stopDetection();
+                btn.innerHTML = '<span>▶ START DETECTION</span>';
+                btn.classList.remove('recording');
+                isRecording = false;
+                updateStatus('cameraStatus', 'OFFLINE');
+                updateStatus('detectionMode', 'STANDBY');
+            }
+        }
+
+        // Start Camera
+        async function startCamera() {
+            const constraints = {
+                video: {
+                    facingMode: currentCamera,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+            
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            
+            video.addEventListener('loadedmetadata', () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            });
+        }
+
+        // Stop Camera
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
+
+        // Restart Camera
+        async function restartCamera() {
+            stopCamera();
+            await startCamera();
+        }
+
+        // Switch Camera
+        async function switchCamera() {
+            currentCamera = currentCamera === 'user' ? 'environment' : 'user';
+            document.getElementById('cameraSelect').value = currentCamera;
+            if (isRecording) {
+                await restartCamera();
+            }
+        }
+
+        // Toggle Flash
+        function toggleFlash() {
+            const flashToggle = document.getElementById('flashToggle');
+            flashToggle.checked = !flashToggle.checked;
+            
+            if (stream) {
+                const track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities();
+                
+                if (capabilities.torch) {
+                    track.applyConstraints({
+                        advanced: [{ torch: flashToggle.checked }]
+                    }).catch(e => console.log('Flash not supported'));
+                }
+            }
+        }
+
+        // Take Snapshot
+        function takeSnapshot() {
+            const snapshotCanvas = document.createElement('canvas');
+            snapshotCanvas.width = video.videoWidth;
+            snapshotCanvas.height = video.videoHeight;
+            const snapshotCtx = snapshotCanvas.getContext('2d');
+            snapshotCtx.drawImage(video, 0, 0);
+            
+            snapshotCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cybrin-snapshot-${Date.now()}.png`;
+                a.click();
+            });
+            
+            addChatMessage('ai', '📸 Snapshot saved successfully!');
+        }
+
+        // Toggle Fullscreen
+        function toggleFullscreen() {
+            const container = document.querySelector('.camera-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Apply Zoom
+        function applyZoom(zoom) {
+            video.style.transform = `scale(${zoom})`;
+        }
+
+        // Apply Filters
+        function applyFilters() {
+            const brightness = document.getElementById('brightness').value;
+            const contrast = document.getElementById('contrast').value;
+            const saturation = document.getElementById('saturation').value;
+            const exposure = document.getElementById('exposure').value;
+            
+            video.style.filter = `
+                brightness(${brightness}%)
+                contrast(${contrast}%)
+                saturate(${saturation}%)
+                brightness(${100 + parseInt(exposure)}%)
+            `;
+        }
+
+        // Start Detection
+        function startDetection() {
+            const speed = parseInt(document.getElementById('detectionSpeed').value);
+            
+            detectionInterval = setInterval(() => {
+                if (document.getElementById('autoDetect').checked) {
+                    performDetection();
+                }
+            }, speed);
+        }
+
+        // Stop Detection
+        function stopDetection() {
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            detectionObjects = [];
+            updateDetectionList();
+        }
+
+        // Perform Detection (Simulated)
+        function performDetection() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const maxObjects = parseInt(document.getElementById('maxObjects').value);
+            const confidenceThreshold = parseInt(document.getElementById('confidenceThreshold').value);
+            const boxColor = document.getElementById('boxColor').value;
+            const boxThickness = parseInt(document.getElementById('boxThickness').value);
+            
+            // Simulate object detection
+            const possibleObjects = [
+                'Coca-Cola Logo', 'Nike Logo', 'Apple Logo', 'McDonald\'s Logo', 
+                'Google Logo', 'Facebook Logo', 'Instagram Logo', 'YouTube Logo',
+                'Pizza', 'Burger', 'Coffee Cup', 'Smartphone', 'Laptop',
+                'Keyboard', 'Mouse', 'Headphones', 'Water Bottle', 'Book',
+                'Pen', 'Notebook', 'Clock', 'Plant', 'Chair', 'Table',
+                'Monitor', 'Camera', 'Glasses', 'Watch', 'Car', 'Building'
+            ];
+            
+            detectionObjects = [];
+            const numObjects = Math.floor(Math.random() * maxObjects) + 1;
+            
+            for (let i = 0; i < numObjects; i++) {
+                const confidence = Math.floor(Math.random() * 30) + 70;
+                
+                if (confidence >= confidenceThreshold) {
+                    const x = Math.random() * (canvas.width - 200);
+                    const y = Math.random() * (canvas.height - 200);
+                    const width = Math.random() * 150 + 100;
+                    const height = Math.random() * 150 + 100;
+                    
+                    const object = {
+                        label: possibleObjects[Math.floor(Math.random() * possibleObjects.length)],
+                        confidence: confidence,
+                        x: x,
+                        y: y,
+                        width: width,
+                        height: height
+                    };
+                    
+                    detectionObjects.push(object);
+                    
+                    // Draw detection box
+                    ctx.strokeStyle = boxColor;
+                    ctx.lineWidth = boxThickness;
+                    ctx.strokeRect(x, y, width, height);
+                    
+                    // Draw label
+                    ctx.fillStyle = boxColor;
+                    ctx.fillRect(x, y - 30, width, 30);
+                    ctx.fillStyle = '#000';
+                    ctx.font = 'bold 14px Courier New';
+                    ctx.fillText(`${object.label} (${confidence}%)`, x + 5, y - 10);
+                }
+            }
+            
+            updateDetectionList();
+            updateStatus('objectCount', detectionObjects.length);
+        }
+
+        // Update Detection List
+        function updateDetectionList() {
+            const list = document.getElementById('detectionList');
+            
+            if (detectionObjects.length === 0) {
+                list.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No objects detected</div>';
+                return;
+            }
+            
+            list.innerHTML = detectionObjects.map(obj => `
+                <div class="detection-item">
+                    <div class="label">🎯 ${obj.label}</div>
+                    <div class="confidence">Confidence: ${obj.confidence}%</div>
+                    <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                        Position: (${Math.floor(obj.x)}, ${Math.floor(obj.y)})
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update Status
+        function updateStatus(id, value) {
+            document.getElementById(id).textContent = value;
+        }
+
+        // Send Message
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addChatMessage('user', message);
+            input.value = '';
+            
+            // Show thinking state
+            updateStatus('aiStatus', 'THINKING...');
+            const thinkingMsg = addChatMessage('ai', 'Searching for information<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>');
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const response = generateAIResponse(message);
+                thinkingMsg.remove();
+                addChatMessage('ai', response.answer, response.sources);
+                updateStatus('aiStatus', 'READY');
+            }, 1500);
+        }
+
+        // Add Chat Message
+        function addChatMessage(sender, content, sources = null) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            let html = `
+                <div class="sender">${sender === 'user' ? 'YOU' : 'CYBRIN AI'}</div>
+                <div class="content">${content}</div>
+            `;
+            
+            if (sources) {
+                html += `<div class="sources">📚 Sources: ${sources}</div>`;
+            }
+            
+            messageDiv.innerHTML = html;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        // Generate AI Response
+        function generateAIResponse(question) {
+            const lowerQ = question.toLowerCase();
+            
+            // Math detection
+            if (lowerQ.match(/\d+\s*[\+\-\*\/x]\s*\d+/)) {
+                try {
+                    const result = eval(lowerQ.replace('x', '*'));
+                    return {
+                        answer: `The answer is: ${result}`,
+                        sources: 'Mathematical computation'
+                    };
+                } catch (e) {
+                    return {
+                        answer: 'I can help you with math! Please format like: 5 + 3 or 10 * 2',
+                        sources: null
+                    };
+                }
+            }
+            
+            // Object detection query
+            if (lowerQ.includes('what') && (lowerQ.includes('see') || lowerQ.includes('detect'))) {
+                if (detectionObjects.length > 0) {
+                    const objects = detectionObjects.map(o => o.label).join(', ');
+                    return {
+                        answer: `I can see: ${objects}`,
+                        sources: 'Real-time object detection'
+                    };
+                } else {
+                    return {
+                        answer: 'Start the camera detection to see objects!',
+                        sources: null
+                    };
+                }
+            }
+            
+            // Knowledge base responses
+            const responses = {
+                'hello': 'Hello! How can I assist you today?',
+                'how are you': 'I\'m functioning perfectly! Ready to help you with object detection and answering questions.',
+                'what can you do': 'I can detect objects in real-time, identify logos, answer questions, solve math problems, and provide information on various topics!',
+                'thank': 'You\'re welcome! Feel free to ask anything else.',
+            };
+            
+            for (let key in responses) {
+                if (lowerQ.includes(key)) {
+                    return {
+                        answer: responses[key],
+                        sources: null
+                    };
+                }
+            }
+            
+            // General knowledge
+            const topics = {
+                'earth': 'Earth is the third planet from the Sun and the only known planet to support life. It has a diameter of about 12,742 km and is approximately 4.5 billion years old.',
+                'sun': 'The Sun is a yellow dwarf star at the center of our solar system. It accounts for about 99.86% of the total mass of the solar system.',
+                'water': 'Water (H₂O) is essential for all known forms of life. It covers approximately 71% of Earth\'s surface.',
+                'gravity': 'Gravity is a fundamental force of nature that attracts objects with mass toward each other. On Earth, it accelerates objects at 9.8 m/s².',
+                'ai': 'Artificial Intelligence (AI) is the simulation of human intelligence by machines, especially computer systems. It includes learning, reasoning, and self-correction.',
+                'python': 'Python is a high-level, interpreted programming language known for its simplicity and readability. Created by Guido van Rossum in 1991.',
+                'computer': 'A computer is an electronic device that processes data according to a set of instructions (programs) to produce useful information.',
+            };
+            
+            for (let topic in topics) {
+                if (lowerQ.includes(topic)) {
+                    return {
+                        answer: topics[topic],
+                        sources: 'Wikipedia, Encyclopedia Britannica, Scientific databases'
+                    };
+                }
+            }
+            
+            // Default response
+            return {
+                answer: `I understand you're asking about "${question}". While I can provide basic information, for detailed answers I would typically search across multiple sources including Wikipedia, academic databases, and verified websites. Could you be more specific about what you'd like to know?`,
+                sources: 'General knowledge base'
+            };
+        }
+
+        // Auto-resize canvas
+        window.addEventListener('resize', () => {
+            if (video.videoWidth) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            }
+        });
+    </script>
+</body>
+</html>
